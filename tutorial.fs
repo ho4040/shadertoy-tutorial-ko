@@ -430,9 +430,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 		pixel = col1;
 	}
 	
-	// There is a shorthand expression for sqrt(v.x*v.x + v.y*v.y)
-	// of a given vector "v", which is "length(v)"
-
 	// sqrt(v.x*v.x + v.y*v.y)는 다음과 같이 짧게 표현을 할 수 있습니다.
 	// 주어진 벡터 "v" 에 대해서 "length(v)"
 	if( length(r) < 0.3) {
@@ -459,39 +456,37 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
 	fragColor = vec4(pixel, 1.0);
 }
-// Note how the latest disk is shown and previous ones are left
-// behind it. It is because the last if condition changes the pixel
-// value at the end.
-// If the coordinates of pixel fits multiple if conditions, the last
-// manipulation will remain and fragColor is set to that one.
+// 제일 마지막에 있는 원반이 직전에 찍은 왼쪽의 원반보다 위에 있는 것을 볼 수 있습니다.
+// 이것은 마지막에 IF 문에 의해서 픽셀의 값이 바뀌기 때문입니다.
+// 여러번 IF문을 거치더라도 마지막에 다뤄진 방식으로 fragColor 의 값이 정해집니다.
+
 
 
 #elif TUTORIAL == 13
-// FUNCTIONS
+// 함수들
 //
-// Functions are great for code reuse. Let's put the code for disks
-// into a function and use the function for drawing.
-// There are so many different ways of writing a function to draw a shape.
+// 함수들은 코드 재사용을 할 수 있게 해줍니다. 
+// 원반을 그려주기 위한 함수코드를 작성 합니다.
+// 도형을 그리기 위한 함수를 작성하는 방법은 여러가지 방법이 있습니다.
+// 
+// 여기에서는 아무것도 리턴하지 않는 void 형의 함수를 사용하겠습니다.
+// 'pixel' 은 'inout' 으로 표현되어 있습니다. 'inout' 은
+// GLSL 키워드 입니다.
+
+// 기본적으로 모든 인자들은 'in' 형식의 인자입니다.
+// 이 말은 변수의 값이 함수가 호출된 스코프로부터 지정된다는 뜻 입니다.
+// 'out'형식의 인자의 값은 함수로부터 함수가 불려진 스코프에 지정됩니다.
+// 'inout' 인자는 위 2가지를 모두 의미합니다.
+// 처음에 변수값은 인자로서 호출한 스코프에서 전달됩니다.
+// 그리고 함수내에서 처리가 된 후에, 함수가 끝나면, 함수를
+// 호출한 스코프에 반영되게 됩니다.
 //
-// Here we have a void function that does not return anything. Instead,
-// "pixel" is taken as an "inout" expression. "inout" is a unique
-// keyword of GLSL.
-// By default all arguments are "in" arguments. Which
-// means, the value of the variable is given to the function scope
-// from the scope the function is called. 
-// An "out" variable gives the value of the variable from the function
-// to the scope in which the function is called.
-// An "inout" argument does both. First the value of the variable is
-// sent to the function as its argument. Then, that variable is
-// processed inside the function. When the function ends, the value
-// of the variable is updated where the function is called.
-//
-// Here, the "pixel" variable that is initialized with the background
-// color in the "main" function. Then, "pixel" is given to the "disk"
-// function. When the if condition is satisfied the value of the "pixel"
-// is changed with the "color" argument. If it is not satified, the
-// "pixel" is left untouched and keeps it previous value (which was the
-// "bgColor".
+// 아래 "pixel" 인자는 일단 'main' 함수에서 배경색으로 지정이 된 상태로
+// 함수에 전달 됩니다. 그리고 조건이 만족하면 disk 함수는 "pixel"
+// 값을 전달받은 "color" 인자로 로 바꾸게 됩니다.
+// 조건을 만족하지 않는 경우, 값을 건들이지 않게 되므로, bgColor 가 유지됩니다. 
+
+
 void disk(vec2 r, vec2 center, float radius, vec3 color, inout vec3 pixel) {
 	if( length(r-center) < radius) {
 		pixel = color;
@@ -503,9 +498,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	vec2 r =  2.0*vec2(fragCoord.xy - 0.5*iResolution.xy)/iResolution.y;
 	
 	vec3 bgCol = vec3(0.3);
-	vec3 col1 = vec3(0.216, 0.471, 0.698); // blue
-	vec3 col2 = vec3(1.00, 0.329, 0.298); // yellow
-	vec3 col3 = vec3(0.867, 0.910, 0.247); // red
+	vec3 col1 = vec3(0.216, 0.471, 0.698); // 파란색
+	vec3 col2 = vec3(1.00, 0.329, 0.298); // 노란색
+	vec3 col3 = vec3(0.867, 0.910, 0.247); // 빨간색
 
 	vec3 pixel = bgCol;
 	
@@ -515,49 +510,46 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	
 	fragColor = vec4(pixel, 1.0);
 }
-// As you see, the borders of the disks have "jagged" curves, where
-// individual pixels can be seen. This is called "aliasing". It occurs
-// because pixels have finite size and we want to draw a continuous
-// shape on a discontinuous grid.
-// There is a method to reduce the aliasing. It is done by mixing the
-// inside color and outside colors at the border. To achieve this
-// we have to learn some built-in functions.
+// 보다시피, 원반의 테두리가 도트가 튀어 깔끔하지 않습니다.
+// 이런걸 "aliasing" 이라고 부릅니다. 부드럽게 이어지길 바라지만 
+// 픽셀의 사이즈가 작아지는데 한계가 있고 연속적인 곡선을 가진 도형을
+// 불연속적인 그리드 위에 그리려고 하기 때문입니다.
+// aliasing을 줄이는 방법이 있습니다. 도형 안쪽의 색과 밖의 색을
+// 섞는 방법입니다. 이것을 하기 위해서는 GLSL 내부 함수들을 배워야 합니다.
 
-// And, again, note the order of disk function calls and how they are
-// drawn on top of each other. Each disk function manipulates
-// the pixel variable. If a pixel is manipulated by multiple disk
-// functions, the value of the last one is sent to fragColor.
+// 그리고, 다시, disk 함수가 호출된 순서와 원반이 겹쳐 그려진
+// 모양을 확인해보세요. 각 'disk' 함수는 픽셀값을 조정합니다.
+// disk 함수에 의해서 여러번 조정된 필셀은 마지막 조정값을 가집니다.
 
-// In this case, the previous values are completely overwritten.
-// The final value only depends to the last function that manipulated
-// the pixel. There are no mixtures between layers.
+// 이 경우엔 이전 값이 완전히 덮어써지게 됩니다.
+// 마지막 값은 오로지 마지막에 호출된 disk 함수에 의해서 조정됩니다.
+// 레이어간 섞이는 것은 없습니다.
 
 
 #elif TUTORIAL == 14
-// BUILT-IN FUNCTIONS: STEP
+// 내부함수들 - STEP
+// "step" 함수는 "단위 계단 함수" 입니다.
+// https://ko.wikipedia.org/wiki/%EB%8B%A8%EC%9C%84_%EA%B3%84%EB%8B%A8_%ED%95%A8%EC%88%98
 //
-// "step" function is the Heaviside step function :-)
-// http://en.wikipedia.org/wiki/Heaviside_step_function
-// 
 // f(x0, x) = {1 x>x0, 
 //            {0 x<x0
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
 	vec2 r =  2.0*vec2(fragCoord.xy - 0.5*iResolution.xy)/iResolution.y;
 	float xMax = iResolution.x/iResolution.y;
 	
-	vec3 bgCol = vec3(0.0); // black
-	vec3 col1 = vec3(0.216, 0.471, 0.698); // blue
-	vec3 col2 = vec3(1.00, 0.329, 0.298); // yellow
-	vec3 col3 = vec3(0.867, 0.910, 0.247); // red
+	vec3 bgCol = vec3(0.0); //검정
+	vec3 col1 = vec3(0.216, 0.471, 0.698); // 파랑
+	vec3 col2 = vec3(1.00, 0.329, 0.298); // 노랑
+	vec3 col3 = vec3(0.867, 0.910, 0.247); // 빨강
 
 	vec3 pixel = bgCol;
 	
 	float edge, variable, ret;
 	
-	// divide the screen into five parts horizontally
-	// for different examples
-	if(r.x < -0.6*xMax) { // Part I
+	// 각각 다른 적용 예를 보여주기 위해 횡으로 5개의 칸을 만듭니다.
+	if(r.x < -0.6*xMax) { // 첫번째칸
 		variable = r.y;
 		edge = 0.2;
 		if( variable > edge ) { // if the "variable" is greater than "edge"
