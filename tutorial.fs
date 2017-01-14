@@ -552,42 +552,48 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	if(r.x < -0.6*xMax) { // 첫번째칸
 		variable = r.y;
 		edge = 0.2;
-		if( variable > edge ) { // if the "variable" is greater than "edge"
+		if( variable > edge ) { //  "variable" 이 "edge" 보다 큰 경우
 			ret = 1.0;          // return 1.0
-		} else {                // if the "variable" is less than "edge"
+		} else {                // "variable" 이 "edge" 보다 작은 경우
 			ret = 0.0;          // return 0.0
 		}
 	} 
-	else if(r.x < -0.2*xMax) { // Part II
+	else if(r.x < -0.2*xMax) { // 두번째칸
 		variable = r.y;
 		edge = -0.2;
-		ret = step(edge, variable); // step function is equivalent to the
-		                            // if block of the Part I
+		ret = step(edge, variable); // step 함수는 첫번째 칸에서
+		                            // 수행한 것과 동일한 것을 합니다.
 	} 
-	else if(r.x < 0.2*xMax) { // Part III
-		// "step" returns either 0.0 or 1.0.
-		// "1.0 - step" will inverse the output
-		ret = 1.0 - step(0.5, r.y); // Mirror the step function around edge
+	else if(r.x < 0.2*xMax) { // 세번째칸
+		// "step" 함수는 0.0이나 1.0을 리턴합니다.
+		// "1.0 - step" 은 반대로 된 값을 리턴하게 됩니다.
+		ret = 1.0 - step(0.5, r.y); // "edge" 를 기준으로 뒤집어진 값을 보여줍니다.
 	} 
-	else if(r.x < 0.6*xMax) { // Part IV
-		// if y-coordinate is smaller than -0.4 ret is 0.3
-		// if y-coordinate is greater than -0.4 ret is 0.3+0.5=0.8
+	else if(r.x < 0.6*xMax) { // 네번째칸
+		// y좌표가 -0.4보다 작으면 ret는 0.3 이 됩니다.
+		// y좌표가 -0.4보다 크다면 ret는 0.3+0.5=0.8 이됩니다.
 		ret = 0.3 + 0.5*step(-0.4, r.y);
 	}
-	else { // Part V
-		// Combine two step functions to create a gap
+	else { // 다섯번째 칸
+		// 두개의 step 함수를 합치면 1이 되는 구간을 만들어낼 수 있습니다.
 		ret = step(-0.3, r.y) * (1.0 - step(0.2, r.y));
-		// "1.0 - ret" will create a gap
+		//역주)
+		// 곱하기를 기준으로 양쪽 결과값이 모두 1인 경우만 1이 됩니다.
+		// 왼쪽 공식 step(-0.3, r.y) 은 y좌표가 -0.3 보다 큰 경우에만 1이 됩니다.
+		// 오른쪽 공식 (1.0 - step(0.2, r.y)) 은 y좌표가 0.2보다 작은 경우에 0이 되는 것을 뒤집엇으니
+		// 0.2보다 큰 경우면 0이 됩니다. 따라서 0.2보다 작으면 1 이 됩니다.
+		// 결과적으로  -0.3 < y < 0.2  구간에서 1이 됩니다.		
 	}
 	
-	pixel = vec3(ret); // make a color out of return value.
+	pixel = vec3(ret); // 결과 색을 지정합니다.
 	fragColor = vec4(pixel, 1.0);
 }
 
 #elif TUTORIAL == 15
-// BUILT-IN FUNCTIONS: CLAMP
+
+// 내부 함수들 - CLAMP
 //
-// "clamp" function saturates the input below and above the thresholds
+// "clamp" 함수는 input 을 min과 max 값으로 제한시킵니다.
 // f(x, min, max) = { max x>max
 //                  { x   max>x>min
 //                  { min min>x
